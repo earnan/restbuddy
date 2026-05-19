@@ -38,9 +38,9 @@ class NotificationService {
     bool playSound = true,
   }) async {
     final androidDetails = AndroidNotificationDetails(
-      'rest_reminder_channel',
+      'restbuddy_channel',
       '休息提醒',
-      channelDescription: '定时休息提醒通知',
+      channelDescription: 'RestBuddy 定时休息提醒通知',
       importance: Importance.high,
       priority: Priority.high,
       playSound: playSound,

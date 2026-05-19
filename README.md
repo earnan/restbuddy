@@ -28,8 +28,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/YOUR_USERNAME/rest_reminder.git
-cd rest_reminder
+git clone https://github.com/earnan/restbuddy.git
+cd restbuddy
 
 # 安装依赖
 flutter pub get
