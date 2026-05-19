@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../data/models/user_settings.dart';
 
 class TimerService {
-  static const String _taskName = 'restReminderTask';
-  static const String _uniqueName = 'restReminderPeriodicTask';
+  static const String _taskName = 'restBuddyReminderTask';
+  static const String _uniqueName = 'restBuddyPeriodicTask';
 
   Future<void> initialize() async {
     await Workmanager().initialize(

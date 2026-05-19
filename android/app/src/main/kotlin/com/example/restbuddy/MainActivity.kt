@@ -1,4 +1,4 @@
-package com.example.rest_reminder
+package com.example.restbuddy
 
 import io.flutter.embedding.android.FlutterActivity
 

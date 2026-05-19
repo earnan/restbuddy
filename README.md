@@ -15,9 +15,11 @@
 
 ## 截图
 
+<!-- TODO: 补充应用截图
 ![主界面](screenshots/home.png)
 ![设置页面](screenshots/settings.png)
 ![统计页面](screenshots/statistics.png)
+-->
 
 ## 开发环境
 
