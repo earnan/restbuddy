@@ -20,6 +20,10 @@ class UserSettings {
   // 工作时间
   late List<WorkSchedule> schedules;
 
+  // 坚果云配置
+  String? jianguoyunUsername;
+  String? jianguoyunPassword;
+
   // 同步相关
   DateTime? lastSyncAt;
 

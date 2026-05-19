@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/utils/env_config.dart';
 import '../../../services/sync_service.dart';
 import '../../providers/settings_provider.dart';
 
@@ -13,31 +12,11 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // 坚果云状态
-  String _jianguoyunStatus = '未配置';
-  String _jianguoyunEmail = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _checkJianguoyunConfig();
-  }
-
-  void _checkJianguoyunConfig() {
-    final username = EnvConfig.get('JIANGUOYUN_USERNAME');
-    final password = EnvConfig.get('JIANGUOYUN_PASSWORD');
-    if (username != null && password != null && username.isNotEmpty) {
-      setState(() {
-        _jianguoyunStatus = '已配置';
-        _jianguoyunEmail = username;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 从 Provider 读取设置
     final settings = ref.watch(settingsProvider);
+    final hasJianguoyun = settings.jianguoyunUsername != null &&
+        settings.jianguoyunUsername!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -128,27 +107,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ListTile(
                 leading: Icon(
                   Icons.cloud,
-                  color: _jianguoyunStatus == '已配置' ? Colors.green : Colors.grey,
+                  color: hasJianguoyun ? Colors.green : Colors.grey,
                 ),
                 title: const Text('坚果云同步'),
-                subtitle: Text(_jianguoyunStatus == '已配置'
-                    ? '已连接: $_jianguoyunEmail'
-                    : '未配置 - 请在 .env 文件中配置'),
-                trailing: _jianguoyunStatus == '已配置'
+                subtitle: Text(hasJianguoyun
+                    ? '已配置: ${settings.jianguoyunUsername}'
+                    : '未配置 - 点击配置'),
+                trailing: hasJianguoyun
                     ? const Icon(Icons.check_circle, color: Colors.green)
                     : const Icon(Icons.chevron_right),
-                onTap: () {
-                  if (_jianguoyunStatus != '已配置') {
-                    _showJianguoyunConfigDialog();
-                  }
-                },
+                onTap: () => _showJianguoyunConfigDialog(),
               ),
-              if (_jianguoyunStatus == '已配置')
+              if (hasJianguoyun) ...[
                 ListTile(
                   title: const Text('测试连接'),
                   trailing: const Icon(Icons.sync),
                   onTap: _testConnection,
                 ),
+                ListTile(
+                  title: const Text('清除配置'),
+                  trailing: const Icon(Icons.delete_outline, color: Colors.red),
+                  onTap: _clearJianguoyunConfig,
+                ),
+              ],
             ],
           ),
 
@@ -172,27 +153,104 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showJianguoyunConfigDialog() {
+    final settings = ref.read(settingsProvider);
+    final usernameController = TextEditingController(
+      text: settings.jianguoyunUsername ?? '',
+    );
+    final passwordController = TextEditingController(
+      text: settings.jianguoyunPassword ?? '',
+    );
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('配置坚果云'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('请在项目根目录的 .env 文件中配置：'),
-            SizedBox(height: 12),
-            Text('JIANGUOYUN_USERNAME=你的邮箱', style: TextStyle(fontFamily: 'monospace')),
-            Text('JIANGUOYUN_PASSWORD=应用密码', style: TextStyle(fontFamily: 'monospace')),
-            SizedBox(height: 12),
-            Text('应用密码获取方式：'),
-            Text('坚果云 → 账户设置 → 安全选项 → 第三方应用管理 → 添加应用密码'),
+            const Text(
+              '应用密码获取方式：',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Text('坚果云 → 账户设置 → 安全选项 → 第三方应用管理 → 添加应用密码'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: '坚果云账号',
+                hintText: 'your_email@example.com',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
+                labelText: '应用密码',
+                hintText: '输入应用密码',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('知道了'),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final username = usernameController.text.trim();
+              final password = passwordController.text.trim();
+              if (username.isNotEmpty && password.isNotEmpty) {
+                ref.read(settingsProvider.notifier).updateJianguoyun(
+                  username,
+                  password,
+                );
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('坚果云配置已保存')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('请填写完整的账号和密码'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearJianguoyunConfig() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清除坚果云配置'),
+        content: const Text('确定要清除坚果云配置吗？清除后需要重新配置才能同步。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              ref.read(settingsProvider.notifier).updateJianguoyun('', '');
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('坚果云配置已清除')),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('清除'),
           ),
         ],
       ),
@@ -205,7 +263,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     try {
+      final settings = ref.read(settingsProvider);
       final syncService = SyncService();
+      await syncService.initialize(
+        username: settings.jianguoyunUsername,
+        password: settings.jianguoyunPassword,
+      );
       final success = await syncService.testConnection();
 
       if (success) {

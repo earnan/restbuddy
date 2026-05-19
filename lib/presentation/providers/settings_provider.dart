@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/sources/local/isar_service.dart';
+import '../../data/models/user_settings.dart';
 
 class AppSettings {
   final int reminderIntervalMinutes;
@@ -6,6 +8,8 @@ class AppSettings {
   final bool enableNotification;
   final bool enableSound;
   final bool enableForceMode;
+  final String? jianguoyunUsername;
+  final String? jianguoyunPassword;
 
   const AppSettings({
     this.reminderIntervalMinutes = 45,
@@ -13,6 +17,8 @@ class AppSettings {
     this.enableNotification = true,
     this.enableSound = true,
     this.enableForceMode = false,
+    this.jianguoyunUsername,
+    this.jianguoyunPassword,
   });
 
   AppSettings copyWith({
@@ -21,6 +27,8 @@ class AppSettings {
     bool? enableNotification,
     bool? enableSound,
     bool? enableForceMode,
+    String? jianguoyunUsername,
+    String? jianguoyunPassword,
   }) {
     return AppSettings(
       reminderIntervalMinutes: reminderIntervalMinutes ?? this.reminderIntervalMinutes,
@@ -28,31 +36,75 @@ class AppSettings {
       enableNotification: enableNotification ?? this.enableNotification,
       enableSound: enableSound ?? this.enableSound,
       enableForceMode: enableForceMode ?? this.enableForceMode,
+      jianguoyunUsername: jianguoyunUsername ?? this.jianguoyunUsername,
+      jianguoyunPassword: jianguoyunPassword ?? this.jianguoyunPassword,
     );
   }
 }
 
 class SettingsNotifier extends StateNotifier<AppSettings> {
-  SettingsNotifier() : super(const AppSettings());
+  SettingsNotifier() : super(const AppSettings()) {
+    _loadFromDatabase();
+  }
+
+  Future<void> _loadFromDatabase() async {
+    final settings = await IsarService.getSettings();
+    state = AppSettings(
+      reminderIntervalMinutes: settings.reminderIntervalMinutes,
+      restDurationSeconds: settings.restDurationSeconds,
+      enableNotification: settings.enableNotification,
+      enableSound: settings.enableSound,
+      enableForceMode: settings.enableForceMode,
+      jianguoyunUsername: settings.jianguoyunUsername,
+      jianguoyunPassword: settings.jianguoyunPassword,
+    );
+  }
+
+  Future<void> _saveToDatabase() async {
+    final settings = await IsarService.getSettings();
+    settings
+      ..reminderIntervalMinutes = state.reminderIntervalMinutes
+      ..restDurationSeconds = state.restDurationSeconds
+      ..enableNotification = state.enableNotification
+      ..enableSound = state.enableSound
+      ..enableForceMode = state.enableForceMode
+      ..jianguoyunUsername = state.jianguoyunUsername
+      ..jianguoyunPassword = state.jianguoyunPassword
+      ..updatedAt = DateTime.now();
+    await IsarService.saveSettings(settings);
+  }
 
   void updateReminderInterval(int minutes) {
     state = state.copyWith(reminderIntervalMinutes: minutes);
+    _saveToDatabase();
   }
 
   void updateRestDuration(int seconds) {
     state = state.copyWith(restDurationSeconds: seconds);
+    _saveToDatabase();
   }
 
   void toggleNotification(bool enabled) {
     state = state.copyWith(enableNotification: enabled);
+    _saveToDatabase();
   }
 
   void toggleSound(bool enabled) {
     state = state.copyWith(enableSound: enabled);
+    _saveToDatabase();
   }
 
   void toggleForceMode(bool enabled) {
     state = state.copyWith(enableForceMode: enabled);
+    _saveToDatabase();
+  }
+
+  void updateJianguoyun(String username, String password) {
+    state = state.copyWith(
+      jianguoyunUsername: username.isEmpty ? null : username,
+      jianguoyunPassword: password.isEmpty ? null : password,
+    );
+    _saveToDatabase();
   }
 }
 

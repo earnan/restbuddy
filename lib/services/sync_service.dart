@@ -2,28 +2,35 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:webdav_client/webdav_client.dart';
 import 'package:flutter/foundation.dart';
-import '../core/utils/env_config.dart';
 import '../core/constants/app_constants.dart';
 import '../data/sources/local/isar_service.dart';
 import '../data/models/rest_record.dart';
+import '../data/models/user_settings.dart';
 import '../domain/enums/rest_status.dart';
 
 class SyncService {
   Client? _client;
   bool _isInitialized = false;
 
-  Future<void> initialize() async {
-    final username = EnvConfig.get('JIANGUOYUN_USERNAME');
-    final password = EnvConfig.get('JIANGUOYUN_PASSWORD');
+  Future<void> initialize({String? username, String? password}) async {
+    // 优先使用传入的参数，否则从数据库读取
+    String? user = username;
+    String? pass = password;
 
-    if (username == null || password == null) {
-      throw Exception('坚果云配置未找到，请在 .env 文件中配置');
+    if (user == null || pass == null) {
+      final settings = await IsarService.getSettings();
+      user ??= settings.jianguoyunUsername;
+      pass ??= settings.jianguoyunPassword;
+    }
+
+    if (user == null || pass == null || user.isEmpty || pass.isEmpty) {
+      throw Exception('坚果云配置未找到，请在设置中配置');
     }
 
     _client = newClient(
       AppConstants.webdavServer,
-      user: username,
-      password: password,
+      user: user,
+      password: pass,
     );
 
     // 创建同步目录

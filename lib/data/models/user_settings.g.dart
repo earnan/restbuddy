@@ -42,34 +42,44 @@ const UserSettingsSchema = CollectionSchema(
       name: r'enableSound',
       type: IsarType.bool,
     ),
-    r'lastSyncAt': PropertySchema(
+    r'jianguoyunPassword': PropertySchema(
       id: 5,
+      name: r'jianguoyunPassword',
+      type: IsarType.string,
+    ),
+    r'jianguoyunUsername': PropertySchema(
+      id: 6,
+      name: r'jianguoyunUsername',
+      type: IsarType.string,
+    ),
+    r'lastSyncAt': PropertySchema(
+      id: 7,
       name: r'lastSyncAt',
       type: IsarType.dateTime,
     ),
     r'reminderIntervalMinutes': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'reminderIntervalMinutes',
       type: IsarType.long,
     ),
     r'restDurationSeconds': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'restDurationSeconds',
       type: IsarType.long,
     ),
     r'schedules': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'schedules',
       type: IsarType.objectList,
       target: r'WorkSchedule',
     ),
     r'soundName': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'soundName',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -94,6 +104,18 @@ int _userSettingsEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.jianguoyunPassword;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.jianguoyunUsername;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.schedules.length * 3;
   {
     final offsets = allOffsets[WorkSchedule]!;
@@ -117,17 +139,19 @@ void _userSettingsSerialize(
   writer.writeBool(offsets[2], object.enableNotification);
   writer.writeBool(offsets[3], object.enablePopup);
   writer.writeBool(offsets[4], object.enableSound);
-  writer.writeDateTime(offsets[5], object.lastSyncAt);
-  writer.writeLong(offsets[6], object.reminderIntervalMinutes);
-  writer.writeLong(offsets[7], object.restDurationSeconds);
+  writer.writeString(offsets[5], object.jianguoyunPassword);
+  writer.writeString(offsets[6], object.jianguoyunUsername);
+  writer.writeDateTime(offsets[7], object.lastSyncAt);
+  writer.writeLong(offsets[8], object.reminderIntervalMinutes);
+  writer.writeLong(offsets[9], object.restDurationSeconds);
   writer.writeObjectList<WorkSchedule>(
-    offsets[8],
+    offsets[10],
     allOffsets,
     WorkScheduleSchema.serialize,
     object.schedules,
   );
-  writer.writeString(offsets[9], object.soundName);
-  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeString(offsets[11], object.soundName);
+  writer.writeDateTime(offsets[12], object.updatedAt);
 }
 
 UserSettings _userSettingsDeserialize(
@@ -143,18 +167,20 @@ UserSettings _userSettingsDeserialize(
   object.enablePopup = reader.readBool(offsets[3]);
   object.enableSound = reader.readBool(offsets[4]);
   object.id = id;
-  object.lastSyncAt = reader.readDateTimeOrNull(offsets[5]);
-  object.reminderIntervalMinutes = reader.readLong(offsets[6]);
-  object.restDurationSeconds = reader.readLong(offsets[7]);
+  object.jianguoyunPassword = reader.readStringOrNull(offsets[5]);
+  object.jianguoyunUsername = reader.readStringOrNull(offsets[6]);
+  object.lastSyncAt = reader.readDateTimeOrNull(offsets[7]);
+  object.reminderIntervalMinutes = reader.readLong(offsets[8]);
+  object.restDurationSeconds = reader.readLong(offsets[9]);
   object.schedules = reader.readObjectList<WorkSchedule>(
-        offsets[8],
+        offsets[10],
         WorkScheduleSchema.deserialize,
         allOffsets,
         WorkSchedule(),
       ) ??
       [];
-  object.soundName = reader.readString(offsets[9]);
-  object.updatedAt = reader.readDateTime(offsets[10]);
+  object.soundName = reader.readString(offsets[11]);
+  object.updatedAt = reader.readDateTime(offsets[12]);
   return object;
 }
 
@@ -176,12 +202,16 @@ P _userSettingsDeserializeProp<P>(
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
       return (reader.readObjectList<WorkSchedule>(
             offset,
             WorkScheduleSchema.deserialize,
@@ -189,9 +219,9 @@ P _userSettingsDeserializeProp<P>(
             WorkSchedule(),
           ) ??
           []) as P;
-    case 9:
+    case 11:
       return (reader.readString(offset)) as P;
-    case 10:
+    case 12:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -437,6 +467,314 @@ extension UserSettingsQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'jianguoyunPassword',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'jianguoyunPassword',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'jianguoyunPassword',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'jianguoyunPassword',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'jianguoyunPassword',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'jianguoyunPassword',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunPasswordIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'jianguoyunPassword',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'jianguoyunUsername',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'jianguoyunUsername',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'jianguoyunUsername',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'jianguoyunUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'jianguoyunUsername',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'jianguoyunUsername',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      jianguoyunUsernameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'jianguoyunUsername',
+        value: '',
       ));
     });
   }
@@ -990,6 +1328,34 @@ extension UserSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortByJianguoyunPassword() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunPassword', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortByJianguoyunPasswordDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunPassword', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortByJianguoyunUsername() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunUsername', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortByJianguoyunUsernameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunUsername', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QAfterSortBy> sortByLastSyncAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastSyncAt', Sort.asc);
@@ -1136,6 +1502,34 @@ extension UserSettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenByJianguoyunPassword() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunPassword', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenByJianguoyunPasswordDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunPassword', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenByJianguoyunUsername() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunUsername', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenByJianguoyunUsernameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'jianguoyunUsername', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QAfterSortBy> thenByLastSyncAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastSyncAt', Sort.asc);
@@ -1236,6 +1630,22 @@ extension UserSettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QDistinct>
+      distinctByJianguoyunPassword({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'jianguoyunPassword',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QDistinct>
+      distinctByJianguoyunUsername({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'jianguoyunUsername',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QDistinct> distinctByLastSyncAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastSyncAt');
@@ -1306,6 +1716,20 @@ extension UserSettingsQueryProperty
   QueryBuilder<UserSettings, bool, QQueryOperations> enableSoundProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'enableSound');
+    });
+  }
+
+  QueryBuilder<UserSettings, String?, QQueryOperations>
+      jianguoyunPasswordProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'jianguoyunPassword');
+    });
+  }
+
+  QueryBuilder<UserSettings, String?, QQueryOperations>
+      jianguoyunUsernameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'jianguoyunUsername');
     });
   }
 
