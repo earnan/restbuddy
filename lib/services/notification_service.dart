@@ -55,7 +55,7 @@ class NotificationService {
       title,
       body,
       details,
-      payload: jsonEncode({'type': 'rest_reminder'}),
+      payload: jsonEncode({'type': 'restbuddy'}),
     );
   }
 
