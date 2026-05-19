@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 
@@ -23,13 +24,35 @@ class NotificationService {
       settings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
+
+    // Android 13+ 请求通知权限
+    if (Platform.isAndroid) {
+      await _requestAndroidPermission();
+    }
+  }
+
+  static Future<void> _requestAndroidPermission() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      final granted = await android.requestNotificationsPermission();
+      debugPrint('Android notification permission granted: $granted');
+    }
   }
 
   static Future<bool> requestPermission() async {
-    final granted = await _plugin
-        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
-    return granted ?? true;
+    if (Platform.isAndroid) {
+      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (android != null) {
+        return await android.requestNotificationsPermission() ?? false;
+      }
+      return true;
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final granted = await _plugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      return granted ?? true;
+    }
+    return true;
   }
 
   static Future<void> showRestReminder({
@@ -46,6 +69,7 @@ class NotificationService {
       playSound: playSound,
       enableVibration: true,
       fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
     );
 
     final details = NotificationDetails(android: androidDetails);
@@ -60,7 +84,7 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    // TODO: 处理通知点击，打开休息弹窗
     debugPrint('Notification tapped: ${response.payload}');
+    // TODO: 处理通知点击，打开休息弹窗
   }
 }

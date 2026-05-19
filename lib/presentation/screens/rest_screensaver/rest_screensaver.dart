@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../providers/settings_provider.dart';
 import '../../../services/audio_service.dart';
 
@@ -60,10 +62,21 @@ class RestScreensaver extends ConsumerStatefulWidget {
 
   static Future<void> _enterFullscreen() async {
     try {
-      await windowManager.setAlwaysOnTop(true);
-      await windowManager.setFullScreen(true);
-      // 隐藏任务栏图标（可选）
-      await windowManager.setSkipTaskbar(true);
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        // 桌面平台：使用 window_manager
+        await windowManager.setAlwaysOnTop(true);
+        await windowManager.setFullScreen(true);
+        await windowManager.setSkipTaskbar(true);
+      } else if (Platform.isAndroid || Platform.isIOS) {
+        // 移动平台：使用 SystemChrome
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      }
+      // 启用屏幕常亮
+      await WakelockPlus.enable();
     } catch (e) {
       debugPrint('Failed to enter fullscreen: $e');
     }
@@ -71,9 +84,18 @@ class RestScreensaver extends ConsumerStatefulWidget {
 
   static Future<void> _exitFullscreen() async {
     try {
-      await windowManager.setFullScreen(false);
-      await windowManager.setAlwaysOnTop(false);
-      await windowManager.setSkipTaskbar(false);
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        // 桌面平台：使用 window_manager
+        await windowManager.setFullScreen(false);
+        await windowManager.setAlwaysOnTop(false);
+        await windowManager.setSkipTaskbar(false);
+      } else if (Platform.isAndroid || Platform.isIOS) {
+        // 移动平台：恢复系统 UI
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        await SystemChrome.setPreferredOrientations([]);
+      }
+      // 禁用屏幕常亮
+      await WakelockPlus.disable();
     } catch (e) {
       debugPrint('Failed to exit fullscreen: $e');
     }

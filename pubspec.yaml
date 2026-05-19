@@ -58,6 +58,9 @@ dependencies:
   google_fonts: ^6.1.0
   path: ^1.9.1
 
+  # 屏幕常亮
+  wakelock_plus: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
