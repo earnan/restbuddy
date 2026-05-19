@@ -73,13 +73,18 @@ const UserSettingsSchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'WorkSchedule',
     ),
-    r'soundName': PropertySchema(
+    r'soundDurationSeconds': PropertySchema(
       id: 11,
+      name: r'soundDurationSeconds',
+      type: IsarType.long,
+    ),
+    r'soundName': PropertySchema(
+      id: 12,
       name: r'soundName',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -150,8 +155,9 @@ void _userSettingsSerialize(
     WorkScheduleSchema.serialize,
     object.schedules,
   );
-  writer.writeString(offsets[11], object.soundName);
-  writer.writeDateTime(offsets[12], object.updatedAt);
+  writer.writeLong(offsets[11], object.soundDurationSeconds);
+  writer.writeString(offsets[12], object.soundName);
+  writer.writeDateTime(offsets[13], object.updatedAt);
 }
 
 UserSettings _userSettingsDeserialize(
@@ -179,8 +185,9 @@ UserSettings _userSettingsDeserialize(
         WorkSchedule(),
       ) ??
       [];
-  object.soundName = reader.readString(offsets[11]);
-  object.updatedAt = reader.readDateTime(offsets[12]);
+  object.soundDurationSeconds = reader.readLong(offsets[11]);
+  object.soundName = reader.readString(offsets[12]);
+  object.updatedAt = reader.readDateTime(offsets[13]);
   return object;
 }
 
@@ -220,8 +227,10 @@ P _userSettingsDeserializeProp<P>(
           ) ??
           []) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1055,6 +1064,62 @@ extension UserSettingsQueryFilter
   }
 
   QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      soundDurationSecondsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'soundDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      soundDurationSecondsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'soundDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      soundDurationSecondsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'soundDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
+      soundDurationSecondsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'soundDurationSeconds',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterFilterCondition>
       soundNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1397,6 +1462,20 @@ extension UserSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortBySoundDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'soundDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      sortBySoundDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'soundDurationSeconds', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QAfterSortBy> sortBySoundName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'soundName', Sort.asc);
@@ -1571,6 +1650,20 @@ extension UserSettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenBySoundDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'soundDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserSettings, UserSettings, QAfterSortBy>
+      thenBySoundDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'soundDurationSeconds', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QAfterSortBy> thenBySoundName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'soundName', Sort.asc);
@@ -1666,6 +1759,13 @@ extension UserSettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserSettings, UserSettings, QDistinct>
+      distinctBySoundDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'soundDurationSeconds');
+    });
+  }
+
   QueryBuilder<UserSettings, UserSettings, QDistinct> distinctBySoundName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1757,6 +1857,13 @@ extension UserSettingsQueryProperty
       schedulesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'schedules');
+    });
+  }
+
+  QueryBuilder<UserSettings, int, QQueryOperations>
+      soundDurationSecondsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'soundDurationSeconds');
     });
   }
 

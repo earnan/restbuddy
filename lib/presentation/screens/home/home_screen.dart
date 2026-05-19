@@ -9,6 +9,7 @@ import '../../../domain/enums/rest_status.dart';
 import '../../../services/sync_service.dart';
 import '../../../services/notification_service.dart';
 import '../../../services/audio_service.dart';
+import '../rest_screensaver/rest_screensaver.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -19,7 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isRunning = false;
-  bool _isResting = false;
   late int _remainingSeconds;
   late int _totalSeconds;
   Timer? _timer;
@@ -56,7 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_isRunning && !_isResting) {
+    if (!_isRunning) {
       final settings = ref.read(settingsProvider);
       _remainingSeconds = settings.reminderIntervalMinutes * 60;
       _totalSeconds = settings.reminderIntervalMinutes * 60;
@@ -101,38 +101,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // 播放提醒音效
     if (settings.enableSound) {
-      AudioService.playReminderSound('gentle_bell.mp3');
-    }
-
-    // 显示通知
-    if (settings.enableNotification) {
-      NotificationService.showRestReminder(
-        title: '休息提醒',
-        body: '该休息了！点击开始 ${settings.restDurationSeconds ~/ 60} 分钟休息',
+      AudioService.playReminderSound(
+        '${settings.soundName}.mp3',
+        durationSeconds: settings.soundDurationSeconds,
       );
     }
 
-    // 开始休息倒计时
-    _startRest(settings.restDurationSeconds);
+    // 显示通知（后台提醒）
+    if (settings.enableNotification) {
+      NotificationService.showRestReminder(
+        title: '休息提醒',
+        body: '该休息了！${settings.restDurationSeconds ~/ 60} 分钟休息已开始',
+      );
+    }
+
+    // 显示全屏屏保
+    _showScreensaver(settings);
   }
 
-  void _startRest(int seconds) {
-    setState(() {
-      _isResting = true;
-      _remainingSeconds = seconds;
-      _totalSeconds = seconds;
-    });
+  Future<void> _showScreensaver(dynamic settings) async {
+    final completed = await RestScreensaver.show(
+      context,
+      restType: '短休息',
+      durationSeconds: settings.restDurationSeconds,
+      forceMode: settings.enableForceMode,
+      onRestComplete: () => _onRestComplete(),
+    );
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        if (_remainingSeconds <= 0) {
-          _timer?.cancel();
-          _isResting = false;
-          _onRestComplete();
-        } else {
-          _remainingSeconds--;
-        }
-      });
+    // 屏保关闭后处理结果
+    if (completed == true) {
+      // 休息完成，已经在 _onRestComplete 中处理
+    } else if (completed == false) {
+      // 用户跳过了休息
+      await _onSkipRest();
+    }
+
+    // 重置计时器
+    _resetTimer();
+  }
+
+  void _resetTimer() {
+    final settings = ref.read(settingsProvider);
+    setState(() {
+      _isRunning = false;
+      _remainingSeconds = settings.reminderIntervalMinutes * 60;
+      _totalSeconds = settings.reminderIntervalMinutes * 60;
     });
   }
 
@@ -157,12 +170,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // 刷新统计数据
     await _loadTodayStats();
 
-    // 重置倒计时
-    setState(() {
-      _remainingSeconds = settings.reminderIntervalMinutes * 60;
-      _totalSeconds = settings.reminderIntervalMinutes * 60;
-    });
-
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -174,8 +181,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _onSkipRest() async {
-    _timer?.cancel();
-
     final settings = ref.read(settingsProvider);
 
     // 记录跳过
@@ -190,11 +195,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     await _loadTodayStats();
 
-    setState(() {
-      _isResting = false;
-      _remainingSeconds = settings.reminderIntervalMinutes * 60;
-      _totalSeconds = settings.reminderIntervalMinutes * 60;
-    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('已跳过本次休息'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   String _formatCountdown(int seconds) {
@@ -245,7 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
 
-    if (!_isRunning && !_isResting) {
+    if (!_isRunning) {
       final newTotal = settings.reminderIntervalMinutes * 60;
       if (_totalSeconds != newTotal) {
         _remainingSeconds = newTotal;
@@ -286,10 +294,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     // 状态标签
                     Chip(
-                      label: Text(_isResting ? '休息中' : (_isRunning ? '运行中' : '已暂停')),
-                      backgroundColor: _isResting
-                          ? Colors.green.shade100
-                          : (_isRunning ? Colors.blue.shade100 : Colors.grey.shade200),
+                      label: Text(_isRunning ? '运行中' : '已暂停'),
+                      backgroundColor: _isRunning ? Colors.blue.shade100 : Colors.grey.shade200,
                     ),
                     const SizedBox(height: 24),
 
@@ -299,11 +305,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       style: TextStyle(
                         fontSize: 72,
                         fontWeight: FontWeight.bold,
-                        color: _isResting
-                            ? Colors.green
-                            : (_isRunning
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey),
+                        color: _isRunning
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey,
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -318,78 +322,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             : 0,
                         minHeight: 8,
                         borderRadius: BorderRadius.circular(4),
-                        color: _isResting ? Colors.green : null,
                       ),
                     ),
                     const SizedBox(height: 8),
 
                     Text(
-                      _isResting
-                          ? '休息中，放松一下'
-                          : (_isRunning ? '距离下次休息' : '点击开始计时'),
+                      _isRunning ? '距离下次休息' : '点击开始计时',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.grey,
                           ),
                     ),
                     const SizedBox(height: 32),
 
-                    // 按钮区域
-                    if (_isResting)
-                      // 休息中：显示跳过按钮
-                      ElevatedButton.icon(
-                        onPressed: _onSkipRest,
-                        icon: const Icon(Icons.skip_next),
-                        label: const Text('跳过休息'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                      )
-                    else
-                      // 正常：显示开始/暂停按钮
-                      GestureDetector(
-                        onTap: _toggleTimer,
-                        child: Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: _isRunning
-                                  ? [Colors.orange, Colors.orange.shade700]
-                                  : [
-                                      Theme.of(context).colorScheme.primary,
-                                      Theme.of(context).colorScheme.primaryContainer,
-                                    ],
+                    // 开始/暂停按钮
+                    GestureDetector(
+                      onTap: _toggleTimer,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: _isRunning
+                                ? [Colors.orange, Colors.orange.shade700]
+                                : [
+                                    Theme.of(context).colorScheme.primary,
+                                    Theme.of(context).colorScheme.primaryContainer,
+                                  ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isRunning ? Colors.orange : Theme.of(context).colorScheme.primary)
+                                  .withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 5,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (_isRunning ? Colors.orange : Theme.of(context).colorScheme.primary)
-                                    .withOpacity(0.3),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                size: 48,
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              size: 48,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              _isRunning ? '暂停' : '开始',
+                              style: const TextStyle(
                                 color: Colors.white,
+                                fontSize: 14,
                               ),
-                              Text(
-                                _isRunning ? '暂停' : '开始',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -420,9 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () {
-                      _startRest(ref.read(settingsProvider).restDurationSeconds);
-                    },
+                    onPressed: _triggerRestReminder,
                     icon: const Icon(Icons.coffee),
                     label: const Text('立即休息'),
                   ),

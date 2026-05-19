@@ -16,6 +16,7 @@ class UserSettings {
   late bool enablePopup;
   late bool enableForceMode;
   late String soundName;
+  late int soundDurationSeconds;
 
   // 工作时间
   late List<WorkSchedule> schedules;
@@ -42,6 +43,7 @@ class UserSettings {
       ..enablePopup = true
       ..enableForceMode = false
       ..soundName = 'gentle_bell'
+      ..soundDurationSeconds = 5
       ..schedules = [WorkSchedule.defaults()]
       ..createdAt = DateTime.now()
       ..updatedAt = DateTime.now();

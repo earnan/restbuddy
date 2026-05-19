@@ -10,6 +10,7 @@ Flutter 多端应用（Windows/macOS/Android/iOS），定时提醒休息，支�
 - **云端同步**: 坚果云 WebDAV
 - **通知**: flutter_local_notifications
 - **图表**: fl_chart
+- **窗口管理**: window_manager
 
 ## 目录结构
 ```
@@ -18,13 +19,19 @@ lib/
 ├── data/           # 数据层（Isar 模型、数据源）
 ├── domain/         # 领域层（枚举：RestStatus, RestType）
 ├── presentation/   # 表现层（页面、Provider）
+│   └── screens/
+│       ├── home/              # 主界面
+│       ├── settings/          # 设置页面
+│       ├── statistics/        # 统计页面
+│       └── rest_screensaver/  # 全屏休息屏保
 ├── services/       # 服务层（同步、通知、音频）
 └── config/         # 路由配置
 ```
 
 ## 核心功能
 - **主界面**: 倒计时 + 实时时钟 + 开始/暂停 + 立即休息 + 同步数据
-- **设置页面**: 提醒间隔/休息时长/通知/声音/强制模式/工作时间/坚果云
+- **休息屏保**: 系统级全屏覆盖（置顶+隐藏任务栏），脉冲动画，跳过按钮
+- **设置页面**: 提醒间隔/休息时长/通知/声音/音效时长/强制模式/工作时间/坚果云
 - **统计页面**: 今日/本周/本月数据 + 图表 + 历史记录
 - **数据持久化**: Isar 本地数据库
 - **云端同步**: 坚果云 WebDAV
@@ -48,6 +55,9 @@ flutter analyze
 
 # Release 构建（需要纯英文路径）
 flutter build windows --release
+
+# 生成安装程序（需要 Inno Setup）
+"C:\Users\hi\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
 ```
 
 ## 已确认决策
@@ -55,3 +65,5 @@ flutter build windows --release
 - 云端同步：坚果云 WebDAV（非 Supabase）
 - 强制模式：始终可跳过，记录为 `force_skipped`
 - 状态管理：Riverpod Provider 共享设置状态
+- 休息屏保：系统级全屏（window_manager setFullScreen + setAlwaysOnTop）
+- 提醒音效：循环播放，默认 5 秒，可在设置中调整（2/3/5/8/10 秒）

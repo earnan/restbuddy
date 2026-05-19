@@ -74,6 +74,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ref.read(settingsProvider.notifier).toggleSound(v);
                 },
               ),
+              if (settings.enableSound)
+                _buildDropdownTile(
+                  title: '提示音时长',
+                  value: settings.soundDurationSeconds,
+                  items: const [
+                    DropdownMenuItem(value: 2, child: Text('2秒')),
+                    DropdownMenuItem(value: 3, child: Text('3秒')),
+                    DropdownMenuItem(value: 5, child: Text('5秒')),
+                    DropdownMenuItem(value: 8, child: Text('8秒')),
+                    DropdownMenuItem(value: 10, child: Text('10秒')),
+                  ],
+                  onChanged: (v) {
+                    ref.read(settingsProvider.notifier).updateSoundDuration(v!);
+                  },
+                ),
               _buildSwitchTile(
                 title: '强制模式',
                 subtitle: '全屏弹窗，必须休息',

@@ -8,6 +8,8 @@ class AppSettings {
   final bool enableNotification;
   final bool enableSound;
   final bool enableForceMode;
+  final String soundName;
+  final int soundDurationSeconds;
   final String? jianguoyunUsername;
   final String? jianguoyunPassword;
 
@@ -17,6 +19,8 @@ class AppSettings {
     this.enableNotification = true,
     this.enableSound = true,
     this.enableForceMode = false,
+    this.soundName = 'gentle_bell',
+    this.soundDurationSeconds = 5,
     this.jianguoyunUsername,
     this.jianguoyunPassword,
   });
@@ -27,6 +31,8 @@ class AppSettings {
     bool? enableNotification,
     bool? enableSound,
     bool? enableForceMode,
+    String? soundName,
+    int? soundDurationSeconds,
     String? jianguoyunUsername,
     String? jianguoyunPassword,
   }) {
@@ -36,6 +42,8 @@ class AppSettings {
       enableNotification: enableNotification ?? this.enableNotification,
       enableSound: enableSound ?? this.enableSound,
       enableForceMode: enableForceMode ?? this.enableForceMode,
+      soundName: soundName ?? this.soundName,
+      soundDurationSeconds: soundDurationSeconds ?? this.soundDurationSeconds,
       jianguoyunUsername: jianguoyunUsername ?? this.jianguoyunUsername,
       jianguoyunPassword: jianguoyunPassword ?? this.jianguoyunPassword,
     );
@@ -55,6 +63,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       enableNotification: settings.enableNotification,
       enableSound: settings.enableSound,
       enableForceMode: settings.enableForceMode,
+      soundName: settings.soundName,
+      soundDurationSeconds: settings.soundDurationSeconds,
       jianguoyunUsername: settings.jianguoyunUsername,
       jianguoyunPassword: settings.jianguoyunPassword,
     );
@@ -68,6 +78,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       ..enableNotification = state.enableNotification
       ..enableSound = state.enableSound
       ..enableForceMode = state.enableForceMode
+      ..soundName = state.soundName
+      ..soundDurationSeconds = state.soundDurationSeconds
       ..jianguoyunUsername = state.jianguoyunUsername
       ..jianguoyunPassword = state.jianguoyunPassword
       ..updatedAt = DateTime.now();
@@ -96,6 +108,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   void toggleForceMode(bool enabled) {
     state = state.copyWith(enableForceMode: enabled);
+    _saveToDatabase();
+  }
+
+  void updateSoundDuration(int seconds) {
+    state = state.copyWith(soundDurationSeconds: seconds);
     _saveToDatabase();
   }
 

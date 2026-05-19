@@ -6,7 +6,9 @@
 
 - **定时提醒**: 自定义间隔（15-120分钟），到时间自动提醒休息
 - **休息类型**: 微休息(30秒)、短休息(5分钟)、长休息(15分钟)
-- **提醒方式**: 系统通知 + 自定义声音 + 弹窗提醒
+- **提醒方式**: 系统通知 + 自定义声音 + 全屏屏保
+- **全屏屏保**: 系统级全屏覆盖，脉冲动画，支持跳过
+- **音效控制**: 循环播放提醒音，可设置时长（2/3/5/8/10秒）
 - **强制模式**: 全屏弹窗强制休息（可紧急跳过）
 - **上班时间**: 支持多时间段、按星期配置
 - **完整统计**: 今日/本周/本月数据、图表、历史记录
@@ -67,7 +69,11 @@ lib/
 ├── domain/         # 领域层
 │   └── enums/      # 枚举定义
 ├── presentation/   # 表现层
-│   ├── screens/    # 页面（主页、设置、统计）
+│   ├── screens/    # 页面
+│   │   ├── home/              # 主界面
+│   │   ├── settings/          # 设置页面
+│   │   ├── statistics/        # 统计页面
+│   │   └── rest_screensaver/  # 全屏休息屏保
 │   └── providers/  # Riverpod Provider
 ├── services/       # 服务层
 │   ├── sync_service.dart      # 坚果云同步
@@ -79,8 +85,11 @@ lib/
 ## 构建发布
 
 ```bash
-# Windows (需要纯英文路径)
+# Windows 便携版 (需要纯英文路径)
 flutter build windows --release
+
+# Windows 安装程序 (需要 Inno Setup)
+"C:\Users\hi\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
 
 # Android
 flutter build apk --release
