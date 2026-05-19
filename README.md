@@ -51,11 +51,7 @@ flutter run -d windows
 
 1. 登录坚果云 → 账户设置 → 安全选项 → 第三方应用管理
 2. 添加应用密码，获取应用密码
-3. 在 `.env` 文件中配置：
-   ```
-   JIANGUOYUN_USERNAME=your_email@example.com
-   JIANGUOYUN_PASSWORD=your_app_password
-   ```
+3. 在应用中配置：设置 → 云端同步 → 坚果云同步 → 填写账号和应用密码
 
 ## 项目结构
 

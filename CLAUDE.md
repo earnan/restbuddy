@@ -32,7 +32,7 @@ lib/
 ## 开发规范
 - 使用 Riverpod 进行状态管理（settingsProvider 共享设置状态）
 - 数据模型使用 Isar Collection
-- 所有密钥通过 `.env` 文件管理（EnvConfig 类）
+- 坚果云配置存储在 Isar 数据库（UserSettings 模型），通过应用内设置界面配置
 - 代码提交前确保 `flutter analyze` 无错误
 
 ## 构建命令
@@ -51,7 +51,7 @@ flutter build windows --release
 ```
 
 ## 已确认决策
-- 密钥管理：`.env` + 自定义 EnvConfig 类（从 exe 目录加载）
+- 坚果云配置：存储在 Isar 数据库，通过应用内设置界面配置（非 .env 文件）
 - 云端同步：坚果云 WebDAV（非 Supabase）
 - 强制模式：始终可跳过，记录为 `force_skipped`
 - 状态管理：Riverpod Provider 共享设置状态
