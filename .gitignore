@@ -49,6 +49,6 @@ app.*.map.json
 # 坚果云同步缓存
 .sync_cache/
 
-# 发布产物（允许提交）
-# RestBuddy-Windows/
-# RestBuddy-Setup.exe
+# 发布产物（不提交到代码仓库，上传到 Release）
+RestBuddy-Windows/
+RestBuddy-Setup.exe
