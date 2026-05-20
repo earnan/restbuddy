@@ -27,6 +27,8 @@
 
 - Flutter 3.41.9
 - Dart 3.11.5
+- Java JDK 17（Android 构建需要）
+- Android SDK（Android 构建需要）
 
 ## 快速开始
 

@@ -46,6 +46,7 @@ lib/
 ```bash
 # 开发运行
 flutter run -d windows
+flutter run -d android
 
 # 代码生成（Isar 模型）
 dart run build_runner build --delete-conflicting-outputs
@@ -53,12 +54,22 @@ dart run build_runner build --delete-conflicting-outputs
 # 分析代码
 flutter analyze
 
-# Release 构建（需要纯英文路径）
-flutter build windows --release
+# Release 构建
+flutter build windows --release       # Windows（需要纯英文路径）
+flutter build apk --release           # Android
 
 # 生成安装程序（需要 Inno Setup）
 "C:\Users\hi\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
 ```
+
+## Android 构建踩坑
+- **JAVA_HOME**：必须设置，指向 JDK 17（`C:\Program Files\Java\jdk-17`）
+- **ANDROID_HOME**：指向 Android SDK（`C:\Users\hi\AppData\Local\Android\Sdk`）
+- **AGP 版本**：最低 8.2.2，否则 isar_flutter_libs 报 namespace 错误
+- **Kotlin 版本**：最低 2.1.0，否则 package_info_plus 编译失败
+- **isar_flutter_libs**：需手动修改 `~/.pub-cache/.../build.gradle` 添加 `namespace` 和升级 `compileSdkVersion`
+- **Maven 镜像**：使用阿里云镜像加速（已在 build.gradle.kts 配置）
+- **Gradle 镜像**：使用腾讯云镜像（已在 gradle-wrapper.properties 配置）
 
 ## 已确认决策
 - 坚果云配置：存储在 Isar 数据库，通过应用内设置界面配置（非 .env 文件）
